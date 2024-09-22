@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Permintaan GET dan POST API</title>
+  </head>
+
+  <body>
+    <h1>Data Postingan</h1>
+
+    <div id="posts"></div>
+
+    <script>
+      const postsDiv = document.getElementById("posts");
+      let posts = []; // Array lokal untuk menyimpan postingan
+
+      // Fungsi untuk menampilkan postingan
+      function displayPosts() {
+        postsDiv.innerHTML = ""; // Bersihkan konten sebelumnya
+        posts.forEach((post) => {
+          const postElement = document.createElement("div");
+          postElement.innerHTML = `<h2>${post.title}</h2><p>${post.body}</p>`;
+          postsDiv.appendChild(postElement);
+        });
+      }
+
+      // Ambil dan tampilkan postingan awal
+      fetch("https://jsonplaceholder.typicode.com/posts")
+        .then((response) => response.json())
+        .then((data) => {
+          posts = data; // Simpan postingan yang diambil secara lokal
+          displayPosts();
+        })
+        .catch((error) => {
+          console.error("Error fetching posts:", error);
+          postsDiv.innerHTML =
+            "<p>Gagal memuat postingan. Silakan coba lagi nanti.</p>";
+        });
+    </script>
+
+    <h1>Kirim Data Postingan</h1>
+
+    <form id="postForm">
+      <label for="title">Judul:</label>
+      <input type="text" id="title" placeholder="Judul" required />
+      <br />
+      <label for="body">Isi:</label>
+      <textarea id="body" placeholder="Isi" required></textarea>
+      <br />
+      <button type="submit">Kirim</button>
+    </form>
+
+    <script>
+      document
+        .getElementById("postForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const title = document.getElementById("title").value;
+          const body = document.getElementById("body").value;
+
+          fetch("https://jsonplaceholder.typicode.com/posts", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              title: title,
+              body: body,
+              userId: 1,
+            }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              console.log("Success:", data);
+              alert("Data berhasil dikirim!");
+
+              // Tambahkan postingan baru ke array lokal
+              posts.unshift(data); // Gunakan unshift untuk menambah di awal array
+
+              // Kosongkan field form
+              document.getElementById("title").value = "";
+              document.getElementById("body").value = "";
+
+              // Tampilkan postingan yang diperbarui
+              displayPosts();
+            })
+            .catch((error) => console.error("Error:", error));
+        });
+    </script>
+  </body>
+</html>

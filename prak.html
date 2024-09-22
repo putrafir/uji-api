@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aplikasi CRUD Sederhana dengan ReqRes.in</title>
+  </head>
+  <body>
+    <h1>Data Pengguna</h1>
+    <div id="posts"></div>
+
+    <h1>Tambah Pengguna</h1>
+    <form id="postForm">
+      <label for="email">Email:</label>
+      <input type="email" id="email" required />
+      <br />
+      <label for="firstName">Nama Depan:</label>
+      <input type="text" id="firstName" required />
+      <br />
+      <label for="lastName">Nama Belakang:</label>
+      <input type="text" id="lastName" required />
+      <br />
+      <button type="submit">Simpan</button>
+    </form>
+
+    <script>
+      const postsDiv = document.getElementById("posts");
+      let posts = [];
+
+      async function fetchPosts() {
+        try {
+          const response = await fetch("https://reqres.in/api/users");
+          const data = await response.json();
+          posts = data.data;
+          displayPosts();
+        } catch (error) {
+          console.error("Error fetching posts:", error);
+          postsDiv.innerHTML =
+            "<p>Gagal memuat data pengguna. Silakan coba lagi nanti.</p>";
+        }
+      }
+
+      function displayPosts() {
+        postsDiv.innerHTML = "";
+        posts.forEach((post) => {
+          const postElement = document.createElement("div");
+          postElement.innerHTML = `
+          <h2>${post.email}</h2>
+          <p>Nama Lengkap: ${post.first_name} ${post.last_name}</p>
+          <button onclick="deleteUser(${post.id})">Hapus</button>
+        `;
+          postsDiv.appendChild(postElement);
+        });
+      }
+
+      async function submitPost() {
+        const email = document.getElementById("email").value;
+        const firstName = document.getElementById("firstName").value;
+        const lastName = document.getElementById("lastName").value;
+
+        try {
+          const response = await fetch("https://reqres.in/api/users", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email,
+              first_name: firstName,
+              last_name: lastName,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              "Gagal menambahkan pengguna. Silakan coba lagi nanti."
+            );
+          }
+
+          const data = await response.json();
+          posts.unshift(data);
+          displayPosts();
+          alert("Pengguna berhasil ditambahkan!");
+        } catch (error) {
+          console.error("Error submitting post:", error);
+          alert(error.message);
+        }
+      }
+
+      async function deleteUser(userId) {
+        if (confirm("Apakah Anda yakin ingin menghapus pengguna ini?")) {
+          try {
+            const response = await fetch(
+              `https://reqres.in/api/users/${userId}`,
+              {
+                method: "DELETE",
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Gagal menghapus pengguna.");
+            }
+
+            posts = posts.filter((post) => post.id !== userId);
+            displayPosts();
+            alert("Pengguna berhasil dihapus!");
+          } catch (error) {
+            console.error("Error deleting user:", error);
+            alert(error.message);
+          }
+        }
+      }
+
+      fetchPosts();
+
+      document
+        .getElementById("postForm")
+        .addEventListener("submit", (event) => {
+          event.preventDefault();
+          submitPost();
+        });
+    </script>
+  </body>
+</html>
